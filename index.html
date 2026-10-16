@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Satış Defteri</title>
+<meta name="description" content="Gıda satışı için hızlı satış, parti, fire ve veresiye takibi. Kayıtlar Google E-Tabloda.">
+<meta name="theme-color" content="#1d8a4a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Satış Defteri">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&display=swap">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}img{max-width:100%}
+
+/* Layout: market-counter POS — product tiles you tap, a keypad sheet for kg/adet, a dark cart bar that docks above the tab bar */
+:root{
+  --bg:#ffffff; --panel:#f2f4f0; --panel-2:#e6eae3; --line:#dfe4dc;
+  --ink:#1a1c18; --muted:#62695f;
+  --green:#1d8a4a; --green-ink:#ffffff; --green-soft:#e2f3e8;
+  --yellow:#ffcb2f; --yellow-ink:#1a1c18; --yellow-soft:#fff4cc;
+  --red:#c8372d; --red-soft:#fde6e3; --orange:#b85c00; --orange-soft:#fdebd6;
+  --bar:#1a1c18; --bar-ink:#ffffff;
+  --f:"Rubik",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --r:16px; --tab-h:62px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#111310; --panel:#1b1e1a; --panel-2:#262a24; --line:#2e332c;
+  --ink:#eef1ec; --muted:#9aa396;
+  --green:#4cc27a; --green-ink:#08200f; --green-soft:#183623;
+  --yellow:#ffd54a; --yellow-ink:#1a1c18; --yellow-soft:#3a3214;
+  --red:#ff8278; --red-soft:#3d1b18; --orange:#f2a24a; --orange-soft:#3a2711;
+  --bar:#2a2f27; --bar-ink:#ffffff; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111310; --panel:#1b1e1a; --panel-2:#262a24; --line:#2e332c;
+  --ink:#eef1ec; --muted:#9aa396;
+  --green:#4cc27a; --green-ink:#08200f; --green-soft:#183623;
+  --yellow:#ffd54a; --yellow-ink:#1a1c18; --yellow-soft:#3a3214;
+  --red:#ff8278; --red-soft:#3d1b18; --orange:#f2a24a; --orange-soft:#3a2711;
+  --bar:#2a2f27; --bar-ink:#ffffff; color-scheme:dark}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--f);font-size:15px;line-height:1.4;-webkit-tap-highlight-color:transparent}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+.num{font-variant-numeric:tabular-nums}
+:focus-visible{outline:3px solid var(--yellow);outline-offset:2px}
+
+.wrap{max-width:720px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);border-bottom:1px solid var(--line)}
+header.top .wrap{display:flex;align-items:center;gap:10px;padding-block:12px}
+.logo{width:34px;height:34px;border-radius:10px;background:var(--green);color:var(--green-ink);display:grid;place-items:center;font-weight:800;font-size:16px;flex-shrink:0}
+.top h1{font-size:19px;font-weight:700;margin:0;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.who{font-size:12px;color:var(--muted);font-weight:500;text-align:right;min-width:0}
+.who b{display:block;color:var(--ink);font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:40vw}
+
+main .wrap{padding-block:14px calc(var(--tab-h) + 100px + env(safe-area-inset-bottom,0px))}
+.screen{display:flex;flex-direction:column;gap:14px}
+.banner{border-radius:12px;padding:12px 14px;font-size:14px;background:var(--yellow-soft)}
+.banner.err{background:var(--red-soft)}
+
+/* inputs */
+.search{width:100%;padding:13px 14px;border-radius:14px;border:0;background:var(--panel);font-size:16px}
+.search::placeholder{color:var(--muted)}
+.field{display:grid;gap:5px;min-width:0}
+.field label,.lbl{font-size:13px;font-weight:600;color:var(--muted)}
+.field input,.field select{width:100%;min-width:0;padding:12px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);font-size:16px}
+.field input:focus,.field select:focus{border-color:var(--green);outline:none}
+.hint{font-size:12px;color:var(--muted)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* buttons */
+.btn{border:0;border-radius:14px;padding:14px 16px;font-weight:700;font-size:16px;background:var(--green);color:var(--green-ink);display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn.alt{background:var(--panel);color:var(--ink)}
+.btn.warn{background:var(--red-soft);color:var(--red)}
+.btn.yellow{background:var(--yellow);color:var(--yellow-ink)}
+.btn.sm{padding:9px 13px;font-size:14px;border-radius:11px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.block{width:100%}
+.row-btns{display:flex;gap:8px;flex-wrap:wrap}
+.row-btns .btn{flex:1}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex-shrink:0;border:1.5px solid var(--line);background:var(--bg);border-radius:99px;padding:8px 14px;font-weight:600;font-size:14px;white-space:nowrap}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.tag{display:inline-block;font-size:12px;font-weight:700;padding:2px 8px;border-radius:99px;white-space:nowrap}
+.tag.red{background:var(--red-soft);color:var(--red)}
+.tag.green{background:var(--green-soft);color:var(--green)}
+.tag.orange{background:var(--orange-soft);color:var(--orange)}
+.tag.grey{background:var(--panel);color:var(--muted)}
+
+/* POS tiles */
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.tile{border:0;background:var(--panel);border-radius:var(--r);padding:14px;text-align:left;display:flex;flex-direction:column;gap:8px;min-height:112px;position:relative;min-width:0}
+.tile:active{transform:scale(.98)}
+.tile .n{font-weight:700;font-size:16px;line-height:1.2;overflow-wrap:anywhere}
+.tile .p{font-weight:800;font-size:18px;margin-top:auto}
+.tile .p small{font-weight:500;font-size:13px;color:var(--muted)}
+.tile .s{font-size:12px;color:var(--muted);font-weight:500}
+.tile .s.out{color:var(--red);font-weight:700}
+.tile .incart{position:absolute;top:10px;right:10px;background:var(--green);color:var(--green-ink);border-radius:99px;font-size:12px;font-weight:700;padding:2px 8px}
+.tile.add{background:transparent;border:2px dashed var(--line);align-items:center;justify-content:center;color:var(--muted);font-weight:600}
+
+/* lists */
+.list{border-radius:var(--r);background:var(--panel);overflow:hidden}
+.it{display:flex;align-items:center;gap:12px;padding:13px 14px;border:0;background:transparent;width:100%;text-align:left;border-bottom:1px solid var(--line)}
+.it:last-child{border-bottom:0}
+button.it:active{background:var(--panel-2)}
+.it .m{flex:1;min-width:0}
+.it .t{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.it .d{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.it .r{text-align:right;flex-shrink:0;display:grid;gap:3px;justify-items:end}
+.it .r .t{font-weight:700}
+.av{width:38px;height:38px;border-radius:50%;background:var(--green-soft);color:var(--green);display:grid;place-items:center;font-weight:700;flex-shrink:0;font-size:14px}
+.dayhead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-weight:700;padding:4px 2px 0}
+.dayhead span{font-size:13px;color:var(--muted);font-weight:600}
+h2{font-size:17px;font-weight:700;margin:4px 0 -4px}
+.empty{border:2px dashed var(--line);border-radius:var(--r);padding:24px 18px;text-align:center;color:var(--muted);display:grid;gap:10px;justify-items:center}
+.empty b{color:var(--ink);font-size:17px}
+.empty ol{text-align:left;margin:0;padding-left:20px;display:grid;gap:4px;font-size:14px}
+
+/* stats */
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{background:var(--panel);border-radius:var(--r);padding:14px;display:grid;gap:3px;min-width:0}
+.stat .v{font-weight:800;font-size:20px;overflow-wrap:anywhere}
+.stat.big{grid-column:1/-1;background:var(--green);color:var(--green-ink)}
+.stat.big .lbl{color:inherit;opacity:.85}
+.stat.big .v{font-size:32px}
+.stat.red{background:var(--red-soft)} .stat.red .v{color:var(--red)}
+.pos{color:var(--green)} .neg{color:var(--red)}
+.kv{display:flex;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line)}
+.kv:last-child{border-bottom:0}
+.kv b{font-weight:700}
+.barrow{display:grid;gap:4px;padding:10px 14px;border-bottom:1px solid var(--line)}
+.barrow:last-child{border-bottom:0}
+.barrow .top{display:flex;justify-content:space-between;gap:10px;font-size:14px}
+.barrow .track{height:8px;border-radius:4px;background:var(--panel-2);overflow:hidden}
+.barrow .fill{height:100%;background:var(--green);border-radius:4px}
+
+/* cart bar */
+.cartbar{position:fixed;z-index:25;left:0;right:0;bottom:calc(var(--tab-h) + env(safe-area-inset-bottom,0px));padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px));padding-bottom:10px;pointer-events:none}
+.cartbar button{pointer-events:auto;max-width:696px;margin:0 auto;width:100%;display:flex;align-items:center;gap:12px;border:0;border-radius:18px;background:var(--bar);color:var(--bar-ink);padding:12px 14px 12px 18px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.cartbar .c{font-size:13px;opacity:.75;font-weight:500}
+.cartbar .tot{font-size:20px;font-weight:800}
+.cartbar .go{margin-left:auto;background:var(--yellow);color:var(--yellow-ink);border-radius:12px;padding:10px 16px;font-weight:800}
+.fab{position:fixed;z-index:25;right:max(16px,calc(env(safe-area-inset-right,0px) + 16px));bottom:calc(var(--tab-h) + 16px + env(safe-area-inset-bottom,0px));border:0;border-radius:16px;padding:15px 20px;background:var(--green);color:var(--green-ink);font-weight:700;font-size:15px;box-shadow:0 8px 24px rgba(0,0,0,.18)}
+
+/* tabs */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:26;background:var(--bg);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+nav.tabs .in{display:grid;grid-template-columns:repeat(5,1fr);max-width:720px;margin:0 auto;height:var(--tab-h)}
+nav.tabs button{border:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;font-weight:600;color:var(--muted)}
+nav.tabs svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+nav.tabs button[aria-current="page"]{color:var(--ink)}
+nav.tabs button[aria-current="page"] svg{stroke:var(--green)}
+
+/* sheet */
+.ov{position:fixed;inset:0;z-index:40;background:rgba(10,12,9,.5);display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--bg);width:100%;max-width:720px;max-height:94%;overflow:auto;border-radius:22px 22px 0 0;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:8px calc(18px + env(safe-area-inset-bottom,0px));animation:up .2s ease-out;display:flex;flex-direction:column;gap:14px}
+@keyframes up{from{transform:translateY(24px);opacity:.5}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.sheet{animation:none}}
+.grab{width:42px;height:5px;border-radius:3px;background:var(--line);margin:2px auto 0;flex-shrink:0}
+.sh{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.sh h3{font-size:21px;font-weight:700;margin:0;min-width:0;overflow-wrap:anywhere}
+.x{border:0;background:var(--panel);border-radius:50%;width:36px;height:36px;font-size:20px;line-height:1;flex-shrink:0}
+
+/* keypad */
+.disp{background:var(--panel);border-radius:var(--r);padding:14px 16px;display:grid;gap:4px}
+.disp .q{font-size:40px;font-weight:800;line-height:1.1;overflow-wrap:anywhere}
+.disp .q small{font-size:20px;font-weight:600;color:var(--muted)}
+.disp .calc{font-size:15px;color:var(--muted);font-weight:500}
+.disp .calc b{color:var(--ink);font-size:19px}
+.keys{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.keys button{border:0;background:var(--panel);border-radius:14px;font-size:24px;font-weight:600;padding:14px 0}
+.keys button:active{background:var(--panel-2)}
+.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.quick button{border:1.5px solid var(--line);background:var(--bg);border-radius:12px;padding:10px 0;font-weight:700;font-size:15px}
+.pay{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pay button{border:2px solid var(--line);background:var(--bg);border-radius:14px;padding:14px 10px;font-weight:700;font-size:16px}
+.pay button[aria-pressed="true"]{border-color:var(--green);background:var(--green-soft);color:var(--ink)}
+.pay button.ver[aria-pressed="true"]{border-color:var(--red);background:var(--red-soft)}
+.line{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--line)}
+.line:last-child{border-bottom:0}
+.line .m{flex:1;min-width:0}
+.line .rm{border:0;background:none;color:var(--muted);font-size:20px;padding:4px 8px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 72px);z-index:60;background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:14px;font-weight:600;font-size:14px;max-width:calc(100% - 32px);text-align:center}
+.tbl{overflow-x:auto}
+
+.sync{font-size:12px;font-weight:600;padding:5px 10px;border-radius:99px;white-space:nowrap;max-width:46vw;overflow:hidden;text-overflow:ellipsis}
+.sync.ok{background:var(--green-soft);color:var(--green)}
+.sync.wait{background:var(--yellow-soft);color:var(--ink)}
+.sync.off{background:var(--red-soft);color:var(--red)}
+.gear{border:0;background:var(--panel);border-radius:10px;width:36px;height:36px;display:grid;place-items:center;flex-shrink:0}
+.gear svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.9}
+.setup{display:grid;gap:14px;padding-top:12px}
+.logo.big{width:56px;height:56px;border-radius:16px;font-size:26px}
+body.nosetup nav.tabs,body.nosetup #sync,body.nosetup .gear{display:none}
+body.nosetup main .wrap{padding-bottom:40px}
+a.btn{text-decoration:none}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <div class="logo" aria-hidden="true">₺</div>
+  <h1>Satış Defteri</h1>
+  <span class="sync ok" id="sync" role="status"></span>
+  <button class="gear" id="installBtn" data-a="install" aria-label="Uygulamayı yükle" title="Uygulamayı yükle" hidden><svg viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+  <button class="gear" data-a="settings" aria-label="Ayarlar"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 01-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 010-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 014 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 010 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg></button>
+</div></header>
+<main><div class="wrap" id="app"><div class="screen"><div class="empty"><b>Açılıyor…</b></div></div></div></main>
+<div class="cartbar" id="cartbar" hidden></div>
+<button class="fab" id="fab" type="button" hidden></button>
+<nav class="tabs" aria-label="Bölümler"><div class="in">
+  <button data-tab="satis" aria-current="page"><svg viewBox="0 0 24 24"><path d="M3 4h2l2.4 11.2a2 2 0 002 1.6h7.7a2 2 0 002-1.5L21 8H6"/><circle cx="9.5" cy="20" r="1.3"/><circle cx="17.5" cy="20" r="1.3"/></svg>Satış</button>
+  <button data-tab="gecmis"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Geçmiş</button>
+  <button data-tab="stok"><svg viewBox="0 0 24 24"><path d="M3 7l9-4 9 4-9 4-9-4zM3 7v10l9 4 9-4V7M12 11v10"/></svg>Stok</button>
+  <button data-tab="musteri"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="4"/><path d="M2 21c0-4 3-6 7-6s7 2 7 6M17 4a4 4 0 010 8M22 21c0-3-1.5-5-4-5.7"/></svg>Müşteri</button>
+  <button data-tab="rapor"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Rapor</button>
+</div></nav>
+<div id="sheetRoot"></div>
+<noscript>Bu uygulama için JavaScript gerekir.</noscript>
+<script src="app.js"></script>
+</body>
+</html>
